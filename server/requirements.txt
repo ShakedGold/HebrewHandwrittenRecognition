@@ -1,0 +1,5 @@
+flask==3.0.3
+Pillow==10.4.0
+datasets==2.20.0
+matplotlib==3.9.1
+pandas==2.2.2
