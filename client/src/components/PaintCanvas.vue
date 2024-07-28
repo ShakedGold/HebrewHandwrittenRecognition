@@ -13,7 +13,7 @@ export default defineComponent({
   props: {
     pixelSize: {
       type: Number,
-      default: 20,
+      default: 40,
     },
     tool: {
       type: String,
@@ -97,8 +97,8 @@ export default defineComponent({
 
     onMounted(() => {
       ctx.value = canvas.value.getContext('2d');
-      canvas.value.width = 500;
-      canvas.value.height = 500;
+      canvas.value.width = 480;
+      canvas.value.height = 480;
       ctx.value.imageSmoothingEnabled = false;
     });
 
