@@ -1,13 +1,11 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import io
 import base64
 from PIL import Image, ImageCms
 import models.svm as svm
-from flask_cors import CORS, cross_origin
+from flask_cors import cross_origin
 
 app = Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
 
 # load the svm model
 svm.load_svm_model()
@@ -23,7 +21,7 @@ def options():
 
 
 @app.post('/save')
-@cross_origin
+@cross_origin()
 def save():
     print('Saving image')
     data: object = request.json
@@ -71,13 +69,12 @@ def save():
     label = svm.predict_image(alpha_values)
     print(label)
 
-    response = app.response_class(
-        response='{"message": "Image saved successfully", "label": "' + label + '"}',
-        status=200,
-        mimetype='application/json'
-    )
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
+    response = {
+        'label': str(label),
+        'message': 'Image saved'
+    }
+
+    return jsonify(kwargs=response, status=200, mimetype='application/json')
 
 
 if __name__ == '__main__':

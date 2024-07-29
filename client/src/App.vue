@@ -8,6 +8,8 @@ const brushSettings = ref({
   size: 1,
   tool: "pen",
 });
+const correct = ref(0);
+const total = ref(0);
 
 document.addEventListener("mousemove", (event) => {
   mousePosition.value.x = event.clientX;
@@ -16,14 +18,14 @@ document.addEventListener("mousemove", (event) => {
 
 
 const getOptionsPromise = () => {
-  // return fetch("/api/options")
-  //   .then((response) => response.json())
-  //   .then((data) => {
-  //     return data;
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error:", error);
-  //   });
+  return fetch("/api/options")
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 };
 
 const options = ref({
@@ -33,19 +35,19 @@ const options = ref({
 });
 
 const optionsPromise = getOptionsPromise();
-// optionsPromise.then((data) => {
-//   if (!data) {
-//     console.error("No data received");
-//     return;
-//   }
-//   options.value = {
-//     width: data.width,
-//     height: data.height,
-//     pixelsPerCell: data.pixelsPerCell,
-//     targetWidth: options.value.targetWidth,
-//     targetHeight: options.value.targetHeight,
-//   };
-// });
+optionsPromise.then((data) => {
+  if (!data) {
+    console.error("No data received");
+    return;
+  }
+  options.value = {
+    width: data.width,
+    height: data.height,
+    pixelsPerCell: data.pixelsPerCell,
+    targetWidth: options.value.targetWidth,
+    targetHeight: options.value.targetHeight,
+  };
+});
 
 const wheel = (event) => {
   if (event.deltaY < 0) {
@@ -114,7 +116,7 @@ const saveImageAndSendToServer = () => {
     .then((response) => response.json())
     .then((data) => {
       console.log("Success:", data);
-      let label = data.label;
+      let label = Number(data.kwargs.label);
       calcAcc(label);
     })
     .catch((error) => {
@@ -122,16 +124,12 @@ const saveImageAndSendToServer = () => {
     });
 };
 
-var correct = 0;
-var total = 0;
 function calcAcc(label) {
   let letter = getLetter(label);
   if (confirm("Is this your letter?" + letter)) {
-    correct++;
+    correct.value++;
   }
-  total++;
-  let labelElm = getElementById("accLabel");
-  labelElm.innerHTML = "Accuracy: " + correct / total;
+  total.value++;
 }
 
 function getLetter(label) {
@@ -190,7 +188,9 @@ function getLetter(label) {
       <PaintCanvas :tool="brushSettings.tool" :pixel-size="Number(brushSettings.size) * options.pixelsPerCell"
         ref="vueCanvasDrawing" />
     </div>
-    <div id="accDiv"><label id="accLabel">0</label></div>
+    <div id="accDiv">
+      <p>{{ (correct / (total === 0 ? 1 : total) * 100).toFixed(2) }}%</p>
+    </div>
     <div>
       <div class="flex gap-5 p-2">
         <button class="border border-black rounded-md p-2" @click="vueCanvasDrawing.undo()">Undo</button>
