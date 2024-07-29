@@ -16,36 +16,36 @@ document.addEventListener("mousemove", (event) => {
 
 
 const getOptionsPromise = () => {
-  return fetch("/api/options")
-    .then((response) => response.json())
-    .then((data) => {
-      return data;
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
+  // return fetch("/api/options")
+  //   .then((response) => response.json())
+  //   .then((data) => {
+  //     return data;
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error:", error);
+  //   });
 };
 
 const options = ref({
-  targetWidth: 400,
-  targetHeight: 400,
-  pixelsPerCell: 20,
+  targetWidth: 480,
+  targetHeight: 480,
+  pixelsPerCell: 12,
 });
 
 const optionsPromise = getOptionsPromise();
-optionsPromise.then((data) => {
-  if (!data) {
-    console.error("No data received");
-    return;
-  }
-  options.value = {
-    width: data.width,
-    height: data.height,
-    pixelsPerCell: data.pixelsPerCell,
-    targetWidth: options.value.targetWidth,
-    targetHeight: options.value.targetHeight,
-  };
-});
+// optionsPromise.then((data) => {
+//   if (!data) {
+//     console.error("No data received");
+//     return;
+//   }
+//   options.value = {
+//     width: data.width,
+//     height: data.height,
+//     pixelsPerCell: data.pixelsPerCell,
+//     targetWidth: options.value.targetWidth,
+//     targetHeight: options.value.targetHeight,
+//   };
+// });
 
 const wheel = (event) => {
   if (event.deltaY < 0) {
@@ -102,7 +102,7 @@ const keypress = (event) => {
 const saveImageAndSendToServer = () => {
   const canvas = vueCanvasDrawing.value.canvas;
   const dataURL = canvas.toDataURL();
-  fetch("/api/save", {
+  fetch("http://localhost:5000/save", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -190,6 +190,7 @@ function getLetter(label) {
       <PaintCanvas :tool="brushSettings.tool" :pixel-size="Number(brushSettings.size) * options.pixelsPerCell"
         ref="vueCanvasDrawing" />
     </div>
+    <div id="accDiv"><label id="accLabel">0</label></div>
     <div>
       <div class="flex gap-5 p-2">
         <button class="border border-black rounded-md p-2" @click="vueCanvasDrawing.undo()">Undo</button>
