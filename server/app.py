@@ -63,10 +63,12 @@ def save():
     # save the image
     new_img.save('image.png')
 
-    print(svm.predict_image(alpha_values))
-
+    label = svm.predict_image(alpha_values)
+    print(label)
+    
     return {
         'message': 'Image saved successfully',
+        'label': label
     }
 
 

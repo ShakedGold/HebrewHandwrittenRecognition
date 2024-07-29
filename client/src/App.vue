@@ -114,11 +114,61 @@ const saveImageAndSendToServer = () => {
     .then((response) => response.json())
     .then((data) => {
       console.log("Success:", data);
+      let label = data.label;
+      calcAcc(label);
     })
     .catch((error) => {
       console.error("Error:", error);
     });
 };
+
+var correct = 0;
+var total = 0;
+function calcAcc(label) {
+  let letter = getLetter(label);
+  if (confirm("Is this your letter?" + letter)) {
+    correct++;
+  }
+  total++;
+  let labelElm = getElementById("accLabel");
+  labelElm.innerHTML = "Accuracy: " + correct / total;
+}
+
+function getLetter(label) {
+  // define dict to turn label to letter
+  const dict = {
+    0: "א",
+    1: "ב",
+    2: "ג",
+    3: "ד",
+    4: "ה",
+    5: "ו",
+    6: "ז",
+    7: "ח",
+    8: "ט",
+    9: "י",
+    10: "כ",
+    11: "ך",
+    12: "ל",
+    13: "מ",
+    14: "ם",
+    15: "נ",
+    16: "ן",
+    17: "ס",
+    18: "ע",
+    19: "פ",
+    20: "ף",
+    21: "צ",
+    22: "ץ",
+    23: "ק",
+    24: "ר",
+    25: "ש",
+    26: "ת",
+  };
+
+  let letter = dict[label];
+  return letter;
+}
 </script>
 
 <template>
