@@ -1,13 +1,23 @@
 from PIL import Image
 import pickle
+from sklearn import svm
 
 global svm_model
 
 
 def load_svm_model():
     global svm_model
-    with open('models/svm_model.sav', 'rb') as file:
+    # load the svm model
+    with open('models/svm_model.pkl', 'rb') as file:
         svm_model = pickle.load(file)
+
+
+def convert_to_probability_dictionary(probabilities):
+    # convert the probabilities to a dictionary
+    probability_dict = {}
+    for i in range(len(probabilities)):
+        probability_dict[i] = probabilities[i]
+    return probability_dict
 
 
 def convert_img_to_binary_array(pixels):
@@ -22,4 +32,5 @@ def convert_img_to_binary_array(pixels):
 
 
 def predict_image(binary_array):
-    return svm_model.predict([binary_array])[0]
+    predicted = svm_model.predict_proba([binary_array])
+    return convert_to_probability_dictionary(predicted[0])

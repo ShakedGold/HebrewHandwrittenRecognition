@@ -14,9 +14,9 @@ svm.load_svm_model()
 @app.get('/options')
 def options():
     return {
-        'width': 40,
-        'height': 40,
-        'pixelsPerCell': 20,
+        'width': 100,
+        'height': 100,
+        'pixelsPerCell': 5,
     }
 
 
@@ -34,7 +34,7 @@ def save():
     width, height = img.size
 
     # every 12 pixels is a cell
-    pixels_per_cell = 12
+    pixels_per_cell = 5
 
     # create new image
     new_img = Image.new('RGBA', (width // pixels_per_cell,
@@ -52,7 +52,7 @@ def save():
             new_img_pixels[x // pixels_per_cell,
                            y // pixels_per_cell] = (r, g, b)
 
-    alpha_values = [0 if r < 128 else 1 for r,
+    alpha_values = [0 if r < 200 else 1 for r,
                     _, _, _ in new_img.getdata()]
 
     new_pixels = [(pixel * 255, pixel * 255, pixel * 255)
@@ -66,11 +66,10 @@ def save():
     # save the image
     new_img.save('image.png')
 
-    label = svm.predict_image(alpha_values)
-    print(label)
+    labels = svm.predict_image(alpha_values)
 
     response = {
-        'label': str(label),
+        'labels': labels,
         'message': 'Image saved'
     }
 

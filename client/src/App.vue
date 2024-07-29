@@ -1,15 +1,17 @@
 <script setup>
 import { ref } from "vue";
 import PaintCanvas from "./components/PaintCanvas.vue";
+import VueDrawingCanvas from "vue-drawing-canvas";
 
 const vueCanvasDrawing = ref(null);
 const mousePosition = ref({ x: 0, y: 0 });
 const brushSettings = ref({
-  size: 1,
+  size: 20,
   tool: "pen",
 });
 const correct = ref(0);
 const total = ref(0);
+const labels = ref([]);
 
 document.addEventListener("mousemove", (event) => {
   mousePosition.value.x = event.clientX;
@@ -29,8 +31,8 @@ const getOptionsPromise = () => {
 };
 
 const options = ref({
-  targetWidth: 480,
-  targetHeight: 480,
+  targetWidth: 500,
+  targetHeight: 500,
   pixelsPerCell: 12,
 });
 
@@ -102,22 +104,26 @@ const keypress = (event) => {
 };
 
 const saveImageAndSendToServer = () => {
-  const canvas = vueCanvasDrawing.value.canvas;
-  const dataURL = canvas.toDataURL();
   fetch("http://localhost:5000/save", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      dataURL,
+      dataURL: vueCanvasDrawing.value.save(),
     }),
   })
     .then((response) => response.json())
     .then((data) => {
       console.log("Success:", data);
-      let label = Number(data.kwargs.label);
-      calcAcc(label);
+      // sort by label
+      // convert to array of objects: {letter: X, prediction: Y}
+      // sort by prediction
+
+      const sorted = Object.entries(data.kwargs.labels).sort((a, b) => b[1] - a[1]);
+      labels.value = sorted;
+
+      // calcAcc(label);
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -170,7 +176,7 @@ function getLetter(label) {
 </script>
 
 <template>
-  <div @wheel="wheel" @keypress="keypress" class="flex flex-col justify-around h-svh items-center">
+  <div @wheel="wheel" @keypress="keypress" class="flex flex-col h-svh items-center justify-center gap-32">
     <!-- hollow Border that follows mouse -->
     <div v-if="brushSettings.tool === 'eraser'" class="overflow-hidden" :style="{
     position: 'absolute',
@@ -184,18 +190,39 @@ function getLetter(label) {
   }">
     </div>
 
-    <div class="border-2 border-black">
-      <PaintCanvas :tool="brushSettings.tool" :pixel-size="Number(brushSettings.size) * options.pixelsPerCell"
-        ref="vueCanvasDrawing" />
-    </div>
-    <div id="accDiv">
-      <p>{{ (correct / (total === 0 ? 1 : total) * 100).toFixed(2) }}%</p>
+    <div class="flex flex-col gap-2 justify-center items-center">
+      <div class="flex justify-center" @click="saveImageAndSendToServer">
+        <button class="border border-black rounded-md p-5 w-32 bg-gray-200">Predict</button>
+      </div>
+      <div class="flex gap-5 items-center justify-center">
+        <div class="flex flex-col items-center justify-center">
+          <!-- <PaintCanvas :tool="brushSettings.tool" :pixel-size="options.pixelsPerCell" ref="vueCanvasDrawing" /> -->
+          <VueDrawingCanvas class="border-2 border-black" ref="vueCanvasDrawing"
+            :line-width="Number(brushSettings.size)" :width="options.targetWidth" :height="options.targetHeight" />
+          <p>{{ (correct / (total === 0 ? 1 : total) * 100).toFixed(2) }}%</p>
+          <div v-if="labels.length > 0" class="flex gap-4 mt-2">
+            <button
+              @click="() => { correct++; total++; console.log('correct:', correct, 'total:', total); vueCanvasDrawing.reset(); labels = [] }"
+              class="bg-green-500 p-2 rounded-[10px] w-10 h-10 flex items-center justify-center">YES</button>
+            <button
+              @click="() => { total++; console.log('correct:', correct, 'total:', total); vueCanvasDrawing.reset(); labels = [] }"
+              class="bg-red-500 rounded-[10px] w-10 h-10 flex items-center justify-center">NO</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4 h-full">
+          <div v-for="(label, index) in labels" :key="label"
+            class="rounded-[10px] text-center flex justify-center items-center p-2 border border-black"
+            :class="index === 0 ? 'col-span-3 h-20 text-2xl bg-gray-400' : 'bg-gray-200'">
+            {{ getLetter(label[0]) }}: {{ (label[1] * 100).toFixed(2) }}%
+          </div>
+        </div>
+      </div>
     </div>
     <div>
       <div class="flex gap-5 p-2">
         <button class="border border-black rounded-md p-2" @click="vueCanvasDrawing.undo()">Undo</button>
         <button class="border border-black rounded-md p-2" @click="vueCanvasDrawing.redo()">Redo</button>
-        <button class="border border-black rounded-md p-2" @click="vueCanvasDrawing.clearCanvas()">Clear</button>
+        <button class="border border-black rounded-md p-2" @click="vueCanvasDrawing.reset()">Clear</button>
       </div>
       <div class="flex gap-5">
         <!-- Eraser -->
@@ -210,10 +237,7 @@ function getLetter(label) {
       </div>
       <div>
         <!-- slider for brushSize -->
-        <input type="range" min="1" max="5" v-model="brushSettings.size" />
-      </div>
-      <div class="flex justify-center" @click="saveImageAndSendToServer">
-        <button class="border border-black rounded-md p-2">Save</button>
+        <input type="range" min="5" max="20" v-model="brushSettings.size" />
       </div>
     </div>
   </div>
