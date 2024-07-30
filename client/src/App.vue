@@ -6,7 +6,7 @@ import VueDrawingCanvas from "vue-drawing-canvas";
 const vueCanvasDrawing = ref(null);
 const mousePosition = ref({ x: 0, y: 0 });
 const brushSettings = ref({
-  size: 20,
+  size: 70,
   tool: "pen",
 });
 const correct = ref(0);
@@ -237,7 +237,7 @@ function getLetter(label) {
       </div>
       <div>
         <!-- slider for brushSize -->
-        <input type="range" min="5" max="20" v-model="brushSettings.size" />
+        <input type="range" min="40" max="80" v-model="brushSettings.size" />
       </div>
     </div>
   </div>
