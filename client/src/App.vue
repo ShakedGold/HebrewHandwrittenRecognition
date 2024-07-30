@@ -31,8 +31,8 @@ const getOptionsPromise = () => {
 };
 
 const options = ref({
-  targetWidth: 500,
-  targetHeight: 500,
+  targetWidth: 480,
+  targetHeight: 480,
   pixelsPerCell: 12,
 });
 
